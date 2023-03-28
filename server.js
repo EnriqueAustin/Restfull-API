@@ -5,6 +5,7 @@ const Product = require('./models/productModel');
 const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({extended: false}));
 
 app.get('/', (req, res) => {
     res.send('Hello NODE API');
@@ -29,9 +30,9 @@ app.get('/products/:id', async(req, res) => {
     try {
         const {id} = req.params;
         const product = await Product.findById(id);
-        res.status(200).json(product)
+        res.status(200).json(product);
     } catch (error) {
-        res.status(500).json({message: error.message})
+        res.status(500).json({message: error.message});
     }
 });
 
@@ -47,17 +48,34 @@ app.post('/products', async(req, res) => {
 });
 
 // PUT update a product to the DB
-app.put('products/:id', async(req, res) => {
+app.put('/products/:id', async(req, res) => {
     try {
         const {id} = req.params;
-        const product = await Product.findOneAndUpdate(id, req.body);
+        const product = await Product.findByIdAndUpdate(id, req.body);
 
         // We canot find any product in DB
         if (!product) {
-            return res.status(404).json({message: `Cannot find any product with ID ${id}`})
+            return res.status(404).json({message: `Cannot find any product with ID ${id}`});
         }
+        const updatedProduct = await Product.findById(id);
+        res.status(200).json(updatedProduct);
+
     } catch (error) {
         res.status(500).json({message: error.message});
+    }
+});
+
+// delete a product from the DB
+app.delete('/products/:id', async(req, res) => {
+    try {
+        const {id} = req.params;
+        const product = await Product.findByIdAndDelete(id);
+        if (!product) {
+            return res.status(404).json({message: `Cannot find any product with ID ${id}`});
+        }
+        res.status(200).json(product);
+    } catch (error) {
+        res.status(500).json({message: error.message})
     }
 });
 
@@ -72,4 +90,4 @@ connect('mongodb+srv://admin:bo2115austin@serverapi.q6yebu0.mongodb.net/Node-API
 
 }).catch((error) => {
     console.log(error);
-})
+});
